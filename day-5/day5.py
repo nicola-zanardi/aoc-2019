@@ -1,98 +1,59 @@
+def pos(op, ops, index, pointer):
+    if len(str(op)) < abs(index) or str(op)[index] == "0":
+        return ops[pointer - index - 2]
+    return pointer - index - 2
+
+
 def intcode(program, test_id):
-    instructions = [int(i) for i in program.split(",")]
+    ops = [int(i) for i in program.split(",")]
     i = 0
-    while i <= len(instructions):
-        instruction = instructions[i]
-        p = -1
-        if instruction == 99:
-            return ",".join([str(x) for x in instructions])
-        elif str(instruction)[-1] == "1":
-            if len(str(instruction)) < 3 or str(instruction)[-3] == "0":
-                number_1 = int(instructions[instructions[i + 1]])
-            else:
-                number_1 = int(instructions[i + 1])
-            if len(str(instruction)) < 4 or str(instruction)[-4] == "0":
-                number_2 = int(instructions[instructions[i + 2]])
-            else:
-                number_2 = int(instructions[i + 2])
-            instructions[instructions[i + 3]] = number_1 + number_2
+    while i <= len(ops):
+        op = ops[i]
+        if op == 99:
+            return ",".join([str(x) for x in ops])
+
+        n1 = int(ops[pos(op, ops, -3, i)])
+        try:
+            n2 = int(ops[pos(op, ops, -4, i)])
+        except:
+            pass
+
+        if str(op)[-1] == "1":
+            ops[ops[i + 3]] = n1 + n2
             i = i + 4
-        elif str(instruction)[-1] == "2":
-            if len(str(instruction)) < 3 or str(instruction)[-3] == "0":
-                number_1 = int(instructions[instructions[i + 1]])
-            else:
-                number_1 = int(instructions[i + 1])
-            if len(str(instruction)) < 4 or str(instruction)[-4] == "0":
-                number_2 = int(instructions[instructions[i + 2]])
-            else:
-                number_2 = int(instructions[i + 2])
-            instructions[instructions[i + 3]] = number_1 * number_2
+        elif str(op)[-1] == "2":
+            ops[ops[i + 3]] = n1 * n2
             i = i + 4
-        elif str(instruction)[-1] == "3":
-            instructions[instructions[i + 1]] = test_id
+        elif str(op)[-1] == "3":
+            ops[ops[i + 1]] = test_id
             i += 2
-        elif str(instruction)[-1] == "4":
-            if len(str(instruction)) < 3 or str(instruction)[-3] == "0":
-                print(instructions[instructions[i + 1]])
-            else:
-                print(instructions[i + 1])
+        elif str(op)[-1] == "4":
+            print(n1)
             i += 2
-        elif str(instruction)[-1] == "5":
-            if len(str(instruction)) < 3 or str(instruction)[-3] == "0":
-                number_1 = int(instructions[instructions[i + 1]])
-            else:
-                number_1 = int(instructions[i + 1])
-            if len(str(instruction)) < 4 or str(instruction)[-4] == "0":
-                number_2 = int(instructions[instructions[i + 2]])
-            else:
-                number_2 = int(instructions[i + 2])
-            if number_1 != 0:
-                i = number_2
+        elif str(op)[-1] == "5":
+            if n1 != 0:
+                i = n2
             else:
                 i += 3
-        elif str(instruction)[-1] == "6":
-            if len(str(instruction)) < 3 or str(instruction)[-3] == "0":
-                number_1 = int(instructions[instructions[i + 1]])
-            else:
-                number_1 = int(instructions[i + 1])
-            if len(str(instruction)) < 4 or str(instruction)[-4] == "0":
-                number_2 = int(instructions[instructions[i + 2]])
-            else:
-                number_2 = int(instructions[i + 2])
-            if number_1 == 0:
-                i = number_2
+        elif str(op)[-1] == "6":
+            if n1 == 0:
+                i = n2
             else:
                 i += 3
-        elif str(instruction)[-1] == "7":
-            if len(str(instruction)) < 3 or str(instruction)[-3] == "0":
-                number_1 = int(instructions[instructions[i + 1]])
+        elif str(op)[-1] == "7":
+            if n1 < n2:
+                ops[ops[i + 3]] = 1
             else:
-                number_1 = int(instructions[i + 1])
-            if len(str(instruction)) < 4 or str(instruction)[-4] == "0":
-                number_2 = int(instructions[instructions[i + 2]])
-            else:
-                number_2 = int(instructions[i + 2])
-            if number_1 < number_2:
-                instructions[instructions[i + 3]] = 1
-            else:
-                instructions[instructions[i + 3]] = 0
+                ops[ops[i + 3]] = 0
             i += 4
-        elif str(instruction)[-1] == "8":
-            if len(str(instruction)) < 3 or str(instruction)[-3] == "0":
-                number_1 = int(instructions[instructions[i + 1]])
+        elif str(op)[-1] == "8":
+            if n1 == n2:
+                ops[ops[i + 3]] = 1
             else:
-                number_1 = int(instructions[i + 1])
-            if len(str(instruction)) < 4 or str(instruction)[-4] == "0":
-                number_2 = int(instructions[instructions[i + 2]])
-            else:
-                number_2 = int(instructions[i + 2])
-            if number_1 == number_2:
-                instructions[instructions[i + 3]] = 1
-            else:
-                instructions[instructions[i + 3]] = 0
+                ops[ops[i + 3]] = 0
             i += 4
         else:
-            print("Invalid opcode")
+            print("Invalid op")
             return
 
 
