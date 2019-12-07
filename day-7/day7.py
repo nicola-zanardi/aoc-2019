@@ -1,19 +1,19 @@
 from itertools import permutations
 
 
-def intcode(program, test_id):
+def intcode(program, test_id, feedback=False, i=0):
     def pos(op, ops, index, pointer):
         if len(str(op)) < abs(index) or str(op)[index] == "0":
-            return ops[pointer - index - 2]
+            try:
+                return ops[pointer - index - 2]
+            except:
+                return 99
         return pointer - index - 2
 
     ops = [int(i) for i in program.split(",")]
-    i = 0
     j = 0
     while i <= len(ops):
         op = ops[i]
-        if op == 99:
-            return ",".join([str(x) for x in ops])
 
         n1 = int(ops[pos(op, ops, -3, i)])
         try:
@@ -21,6 +21,8 @@ def intcode(program, test_id):
         except:
             pass
 
+        if op == 99:
+            return [n1], ",".join([str(x) for x in ops]), i
         if str(op)[-1] == "1":
             ops[ops[i + 3]] = n1 + n2
             i = i + 4
@@ -32,7 +34,10 @@ def intcode(program, test_id):
             i += 2
             j += 1
         elif str(op)[-1] == "4":
-            return n1
+            i += 2
+            if not feedback:
+                return n1
+            return n1, ",".join([str(x) for x in ops]), i
         elif str(op)[-1] == "5":
             if n1 != 0:
                 i = n2
@@ -60,8 +65,9 @@ def intcode(program, test_id):
             return
 
 
-program = open("input.txt").readline().strip()
+program = open("day-7/input.txt").readline().strip()
 seqs = list(permutations("43210"))
+seqs_2 = list(permutations("98765"))
 
 results = set()
 
@@ -76,3 +82,34 @@ def amplify(stages, program, settings, signal=0, stage=0):
 for seq in seqs:
     results.add(amplify(5, program, seq))
 print(f"PART 1: {max(results)}")
+
+
+def amplify_feedback(
+    stages, programs, settings, pointers, signal=0, stage=0, last_result=0
+):
+    if isinstance(signal, list):
+        return last_result
+
+    if stage == stages:
+        last_result = signal
+        stage = 0
+
+    if pointers[stage] == 0:
+        call = [settings[stage], signal]
+    else:
+        call = [signal]
+    signal, programs[stage], pointers[stage] = intcode(
+        programs[stage], call, feedback=True, i=pointers[stage],
+    )
+    return amplify_feedback(
+        stages, programs, settings, pointers, signal, stage + 1, last_result
+    )
+
+
+results = set()
+for seq in seqs_2:
+    # seq = [9, 7, 8, 5, 6]
+    pointers = [0, 0, 0, 0, 0]
+    programs = [program for i in range(5)]
+    results.add(amplify_feedback(5, programs, seq, pointers))
+print(f"PART 2: {max(results)}")
